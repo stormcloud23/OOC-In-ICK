@@ -42,20 +42,34 @@ local phrases = {
     {"^sendhelp", "Name appears to use a sentence rather than a name"},
 }
 
+-- Normalize display variants without collapsing genuinely different names:
+-- "Grumdin-Redbeard" == "Grumdin Redbeard", but NOT "Grumdinred Beard".
 local function clean(name)
-    if type(name) ~= "string" then return nil end
-    local value = name:lower():gsub("^%s+", ""):gsub("%s+$", "")
-    -- Use the entire name, not just a first name; Forever has surnames.
-    local joined = value:gsub("[%s%-%_']+", "")
-    return value, joined
+    if type(name) ~= "string" or #name > 100 or name:find("|", 1, true) then return nil end
+    local canonical = name:lower():gsub("^%s+", ""):gsub("%s+$", "")
+        :gsub("[%s%-%_]+", " "):gsub("^%s+", ""):gsub("%s+$", "")
+    if canonical == "" then return nil end
+    local joined = canonical:gsub("[%s']+", "")
+    return canonical, joined
 end
+
+function ns.NormalizeName(name)
+    local canonical = clean(name)
+    return canonical
+end
+
+function ns.HasFullName(name)
+    local canonical = clean(name)
+    return canonical ~= nil and canonical:find(" ", 1, true) ~= nil
+end
+
 
 function ns.EvaluateName(name, custom)
     local raw, joined = clean(name)
     if not raw or joined == "" then return nil end
 
     -- Explicit user-supplied full-name matches, never hidden substring matches.
-    if type(custom) == "table" and custom[joined] then
+    if type(custom) == "table" and (custom[raw] or custom[joined]) then
         return "Custom watchlist match", "custom"
     end
 
@@ -79,7 +93,3 @@ function ns.EvaluateName(name, custom)
     return nil
 end
 
-function ns.NormalizeName(name)
-    local _, joined = clean(name)
-    return joined
-end

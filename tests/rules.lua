@@ -104,6 +104,57 @@ for _, name in ipairs({
     "Softwareson Stone", "Internetarian Stone", "Mortgagekeeper Stone",
 }) do clear(name) end
 
+-- Distinct modern professions and institutions: joined full name or component.
+for _, case in ipairs({
+    {"Tax Accountant", "Modern profession or job title"},
+    {"Software Developer", "Modern profession or job title"},
+    {"FBI Agent", "Modern profession or job title"},
+    {"Data Scientist", "Modern profession or job title"},
+    {"Real Estate Agent", "Modern profession or job title"},
+    {"Cybersecurity Analyst", "Modern profession or job title"},
+    {"NASA Astronaut", "Modern profession or job title"},
+    {"IRSAuditor Redbeard", "Modern profession or job title"},
+    {"NATO Stone", "Real-world organization or service"},
+    {"Interpol Blackwick", "Real-world organization or service"},
+    {"United Nations", "Real-world organization or service"},
+    {"CIA Stone", "Real-world organization or service"},
+    {"Paypal Ironfist", "Real-world organization or service"},
+    {"Airbnb Goblin", "Real-world organization or service"},
+    {"SpaceX Stout", "Real-world organization or service"},
+}) do
+    local reason, confidence = ns.EvaluateName(case[1])
+    assert(reason == case[2] and confidence == "medium", case[1] .. ": " .. tostring(reason))
+end
+
+-- Popular streamer handles and aliases, with conservative confidence.
+for _, handle in ipairs({
+    "Asmongold", "Zackrawrr", "Sodapoppin", "EsfandTV",
+    "Pikabooirl", "Towelliee", "Bajheera", "JokerdTV",
+    "McconnellRet", "Summit1g", "Pikaboo", "Venruki",
+    "GingiTV", "KungenTV", "PsheroTV", "TimTheTatman",
+    "Naowh", "Trillebartom", "Ziqoftw",
+}) do
+    local reason, confidence = ns.EvaluateName(handle .. " Ironforge")
+    assert(reason == "WoW streamer handle reference" and confidence == "medium",
+        "Missing streamer handle: " .. handle .. " got " .. tostring(reason))
+end
+for _, handle in ipairs({"Asmon", "Esfand", "Xaryu", "Payo", "Guzu", "Savix", "Kungen"}) do
+    local reason, confidence = ns.EvaluateName(handle .. " Ironforge")
+    assert(reason == "Possible WoW streamer alias (ambiguous)" and confidence == "low",
+        "Wrong streamer alias confidence: " .. handle .. " got " .. tostring(reason))
+end
+
+-- Avoid generic professions, organizations and embedded alias substrings.
+for _, name in ipairs({
+    "Asmongolden Redbeard", "Asmonius Stone", "Esfandar Ironforge",
+    "Xaryus Silver", "Payonor Stone", "Guzuth Blackwick",
+    "Savixor Storm", "Venrukian Stout", "Taxaccountantess Stout",
+    "Softwaredeveloperian Redbeard", "Fbiarcher Stone",
+    "Taxbinder Stout", "Arcane Engineer", "Dwarven Accountant",
+    "Goblin Merchant", "Engineer Ironhammer", "Nasaari Stoneshield",
+    "Maximum Redbeard", "Echo Blackwick", "Method Stone",
+}) do clear(name) end
+
 -- A user-specified watchlist should still have priority over general rules.
 assert(ns.EvaluateName("Sephiroth Ironforge", {["sephiroth ironforge"] = true})
     == "Custom watchlist match")

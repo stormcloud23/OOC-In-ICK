@@ -107,6 +107,87 @@ local modernLife = {
     notification = true, unsubscribe = true,
 }
 
+-- Distinctly contemporary occupations. Generic fantasy-plausible jobs
+-- (engineer, merchant, doctor, accountant, miner) are intentionally omitted.
+local modernProfessions = {
+    softwaredeveloper = true, webdeveloper = true, appdeveloper = true,
+    gamedeveloper = true, videogamedeveloper = true,
+    datascientist = true, dataanalyst = true, aiengineer = true,
+    machinelearningengineer = true, ittechnician = true, itmanager = true,
+    networkadministrator = true, systemadministrator = true,
+    cybersecurityanalyst = true, cybersecurityexpert = true,
+    penetrationtester = true, ethicalhacker = true,
+    socialmediamanager = true, socialmediamarketer = true,
+    digitalmarketer = true, seospecialist = true,
+    onlineinfluencer = true, youtubestar = true, twitchstreamer = true,
+    professionalstreamer = true, twitchpartner = true,
+    cryptocurrencytrader = true, cryptotrader = true,
+    investmentbanker = true, stockbroker = true,
+    financialadvisor = true, taxaccountant = true, taxconsultant = true,
+    irsauditor = true, irsagent = true, fbiagent = true,
+    fbidirector = true, ciaagent = true,
+    nasascientist = true, nasaastronaut = true,
+    realestateagent = true, mortgagebroker = true,
+    marketingmanager = true, hrmanager = true,
+    projectmanager = true, productmanager = true,
+    chiefexecutiveofficer = true, chieftechnologyofficer = true,
+    corporateexecutive = true, callcenteragent = true,
+    customerservicerep = true, uberdriver = true,
+    ridesharedriver = true, fooddeliverydriver = true,
+}
+
+-- Recognizable real-world institutions and organizations, not shared
+-- words such as "bank", "police", "guild", "agent", or "union".
+local modernOrganizations = {
+    federalbureauofinvestigation = true,
+    centralintelligenceagency = true,
+    internalrevenueservice = true,
+    departmentofdefense = true, departmentofhomelandsecurity = true,
+    unitednations = true, worldhealthorganization = true,
+    worldbank = true, internationalmonetaryfund = true,
+    federalreserve = true, federalreservebank = true,
+    fbi = true, cia = true, irs = true, nasa = true, nato = true,
+    interpol = true, unicef = true, unesco = true,
+    whitehouse = true, wallstreet = true, siliconvalley = true,
+    spacex = true, tesla = true, amazonprime = true,
+    amazonwebservices = true, appleinc = true,
+    googlemaps = true, googledocs = true, googlechrome = true,
+    tiktokshop = true, uber = true, ubereats = true,
+    doordash = true, airbnb = true, paypal = true,
+    venmo = true, cashapp = true, burgerking = true,
+    tacobell = true, chickfila = true,
+    cocacola = true, pepsicola = true,
+}
+
+-- Recognizable WoW streamer/channel handles (not personal/legal names).
+-- These are potential references for review, not naming-policy verdicts.
+local streamerHandles = {
+    asmongold = true, asmontv = true, asmongoldtv = true,
+    asmongold247 = true, zackrawrr = true, sodapoppin = true,
+    esfandtv = true, pikabooirl = true, bajheera = true,
+    towelliee = true, jokerdtv = true, mcconnellret = true,
+    ziqoftw = true, gingitv = true, psherotv = true,
+    kungentv = true, summit1g = true, timthetatman = true,
+    fragnance = true, pikaboo = true, hydramist = true,
+    whaazz = true, jahmilli = true, trillebartom = true,
+    pilavpowa = true, hazelnuttygames = true,
+    automaticjak = true, supatease = true,
+    wowgrandma78 = true, dorki = true, ahmpy = true,
+    manalol = true, graysfordays = true, shobek = true,
+    gingi = true, jokerd = true, pshero = true,
+    venruki = true, naowh = true, metashi12 = true,
+    jdotb = true, scripe = true, shroudyrowdy = true,
+}
+
+-- Short/fantasy-plausible names get LOW confidence: being called
+-- "Esfand" or "Xaryu" alone is not evidence of a streamer reference.
+local ambiguousStreamerAliases = {
+    asmon = true, esfand = true, xaryu = true,
+    payo = true, guzu = true, savix = true,
+    kungen = true, fandy = true, ziqo = true,
+    sarthe = true,
+}
+
 -- Modern chat slang and memes. Matching a complete component prevents
 -- "gg" in "Dagger" or "rekt" in a longer fantasy name from being flagged.
 local slang = {
@@ -225,7 +306,10 @@ local function decorativeX(part)
         or part:match("^x([a-z%d]+)$")
         or part:match("^([a-z%d]+)x$")
     return stripped and (references[stripped] or technology[stripped] or
-        modernLife[stripped] or slang[stripped] or jokePhrases[stripped]) or false
+        modernLife[stripped] or modernProfessions[stripped] or
+        modernOrganizations[stripped] or streamerHandles[stripped] or
+        ambiguousStreamerAliases[stripped] or
+        slang[stripped] or jokePhrases[stripped]) or false
 end
 
 local function exactMatch(part)
@@ -233,6 +317,10 @@ local function exactMatch(part)
     if references[part] then return "Modern/pop-culture reference", "medium" end
     if technology[part] then return "Modern technology or internet term", "medium" end
     if modernLife[part] then return "Modern product, institution or concept", "medium" end
+    if modernProfessions[part] then return "Modern profession or job title", "medium" end
+    if modernOrganizations[part] then return "Real-world organization or service", "medium" end
+    if streamerHandles[part] then return "WoW streamer handle reference", "medium" end
+    if ambiguousStreamerAliases[part] then return "Possible WoW streamer alias (ambiguous)", "low" end
     if slang[part] then return "Internet slang or meme", "medium" end
     if jokePhrases[part] then return "Modern joke or sentence-like phrase", "medium" end
 end

@@ -2,7 +2,7 @@
 ## Title: OOC-In-ICK
 ## Notes: Review potentially out-of-character names on Forever RP realms.
 ## Author: stormcloud23
-## Version: 0.1.3
+## Version: 0.1.4
 ## SavedVariables: OOCInICKDB
 
 Rules.lua

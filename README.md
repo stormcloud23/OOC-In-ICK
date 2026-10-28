@@ -45,6 +45,30 @@ Terms are matched as an **entire first-name or surname component**, or across an
 
 Every match is only a **suggestion for human review**. Warcraft includes technology, steam engineering, machines, commerce, and modern-sounding humor, so generic words such as `engineer`, `steam`, `tank`, `raid`, `bank`, `sigma`, and `chad` are intentionally not blacklisted. Players can remove false positives through Ignore. As before, only complete first-and-surname observations enter the queue automatically.
 
+## Modern professions, organizations and streamer handles (v0.1.4)
+
+Distinctive modern occupations are matched as complete components or combined
+full names: Tax Accountant, Software Developer, Data Scientist, FBI Agent,
+NASA Astronaut, Real Estate Agent, and Social Media Manager. Generic fantasy-
+plausible occupations like Engineer, Merchant and Accountant remain unflagged.
+
+Modern organization references include FBI, CIA, IRS, NASA, NATO, Interpol,
+United Nations, SpaceX, Airbnb, and PayPal. Exact matching prevents nearby
+fantasy-sounding words from being flagged by substring.
+
+A curated list of WoW streaming handles includes Asmongold, Zackrawrr,
+Sodapoppin, EsfandTV, Pikabooirl, Towelliee, Bajheera, JokerdTV,
+Ziqoftw, and other recognizable channel handles. Short/fantasy-plausible
+aliases Asmon, Esfand, Xaryu, Payo, Guzu, Savix, and Kungen are
+flagged **low confidence** to reduce false positives. No legal names
+are used. Names matching streamer handles are not proof of a policy violation,
+impersonation, or intent to reference the streamer.
+
+Research (October 2026):
+- https://www.twitchmetrics.net/channels/viewership?game=World+of+Warcraft
+- https://streamscout.org/categories/world-of-warcraft
+- https://www.followercharts.com/games/twitch/world-of-warcraft
+
 ## Chat commands
 
 | Command | Action |

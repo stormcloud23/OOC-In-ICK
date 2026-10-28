@@ -1,0 +1,10 @@
+## Interface: 16001
+## Title: OOC-In-ICK
+## Notes: Review potentially out-of-character names on Forever RP realms.
+## Author: stormcloud23
+## Version: 0.1.0
+## SavedVariables: OOCInICKDB
+
+Rules.lua
+Core.lua
+UI.lua

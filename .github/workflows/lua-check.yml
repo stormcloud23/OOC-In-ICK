@@ -22,5 +22,7 @@ jobs:
           luac5.1 -p OOCInICK/Rules.lua
           luac5.1 -p OOCInICK/Core.lua
           luac5.1 -p OOCInICK/UI.lua
-      - name: Rules
-        run: lua5.1 tests/rules.lua
+      - name: Heuristic and event-processing tests
+        run: |
+          lua5.1 tests/rules.lua
+          lua5.1 tests/core.lua

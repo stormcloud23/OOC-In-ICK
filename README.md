@@ -17,11 +17,13 @@ Forever 1.60.1 uses interface number 16001 and the Camelot TOC flavor. This code
 
 ## How it works
 
-- Passive observation: NAME_PLATE_UNIT_ADDED, UNIT_NAME_UPDATE, target, and mouseover.
+- Passive observation: NAME_PLATE_UNIT_ADDED, UNIT_NAME_UPDATE, focus/target/mouseover changes, and exposed nameplates; event-driven, no continuous polling.
 - Nearby chat: say/yell/emote senders (on by default).
 - Optional zone chat: CHAT_MSG_CHANNEL senders (off by default). This is not a census of the zone.
-- Detection: examples from Blizzard's RP naming policy, a short list of obvious modern references, suspicious sentence-like prefixes, and low-confidence repeated-character patterns.
-- Review queue: timestamp, zone, source, sightings, reason, name, and optional player GUID are held in SavedVariables.
+- Detection: examples from Blizzard's RP naming policy, a short list of obvious modern references, suspicious sentence-like prefixes, and low-confidence repeated-character patterns. Only complete first-and-surname identities are automatically queued.
+- Processing: non-matches are cached in a bounded 256-name table, repeated candidate sightings are coalesced into 60-second intervals, and chat events do not allocate an argument table.
+- Name identity: "First Surname" and "First-Surname" normalize to the same key, while "FirstSurname" remains distinct; heuristics may still inspect the joined spelling. Older saved entries are migrated on load.
+- Review queue: timestamp, zone, source, sightings (at least 60 seconds apart), reason, name, and optional player GUID are held in SavedVariables.
 - Report: a user-initiated attempt to open Blizzard's native InWorld report UI with the inappropriate-name category and optional suggested notes. A fresh target/nameplate/GUID-based PlayerLocation is required. If the native frame is missing or restricted, the addon offers manual details and instructs you to use the built-in right-click report function.
 - Ignore: excludes that exact normalized full name locally. There is no network communication or shared blocklist.
 
@@ -54,6 +56,7 @@ References:
 - https://us.support.blizzard.com/en/help/article/135764
 - https://news.blizzard.com/en-us/article/24304161/create-a-name-of-your-own-in-wow-forever
 - https://github.com/ATTWoWAddon/AllTheThings/issues/2630 (Forever's surname API behavior)
+- https://warcraft.wiki.gg/wiki/Patch_1.60.1/API_changes/notes (Forever interface/security differences)
 - https://github.com/Gethe/wow-ui-source/blob/live/Interface/AddOns/Blizzard_ReportFrameShared/ReportFrameShared.lua (modern report-frame integration)
 
 ## Testing priorities
@@ -65,3 +68,9 @@ References:
 5. Confirm SavedVariables persist between client sessions; beta builds have reportedly exhibited persistence problems.
 
 All candidate reports require independent, deliberate user review.
+
+## Regression testing
+
+The GitHub Actions workflow runs Lua 5.1 syntax checks, naming-heuristic tests, and a headless event/SavedVariables test with mocked WoW APIs. You can run them locally with `lua5.1 tests/rules.lua` and `lua5.1 tests/core.lua` from the repository root. A successful run cannot verify the live client or protected Blizzard reporting flow.
+
+Historical v0.1.0 ignored/watchlist keys were compacted without separators; these remain recognized for backwards compatibility. New entries use separator-aware keys. To remove an old watch or ignore, use `/ooc unwatch First Surname` or `/ooc unignore First Surname`.

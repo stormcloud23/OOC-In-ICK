@@ -6,6 +6,16 @@ local defaults = {enabled = true, chat = true, zoneChat = false, notify = true, 
 local db
 local lastNotice = {}
 local MAX_NAME_BYTES = 100
+local SIGHTING_INTERVAL = 60 -- repeated events do not count as new sightings
+local negativeCache, negativeCount = {}, 0
+local playerKey
+
+local visibleUnits = {"target", "mouseover", "focus"}
+for i = 1, 40 do visibleUnits[#visibleUnits + 1] = "nameplate" .. i end
+
+local function clearNegativeCache()
+    negativeCache, negativeCount = {}, 0
+end
 
 local function safe(fn, ...)
     if type(fn) ~= "function" then return nil end
@@ -69,37 +79,54 @@ end
 function ns.ObserveName(name, guid, source, manual)
     if not db or (not db.options.enabled and not manual) then return end
     name = text(name)
-    if not name then return end
+    -- Forever's first names are not unique; never queue an incomplete identity.
+    if not name or not ns.HasFullName(name) then return end
     local key = ns.NormalizeName(name)
-    if not key or key == "" or key == ns.NormalizeName(getUnitName("player")) then return end
-    if db.ignored[key] then return end
-    local reason, confidence = ns.EvaluateName(name, db.custom)
-    if not reason and not manual then return end
-    reason = reason or "Manually added for review"
-    confidence = confidence or "manual"
+    if not key then return end
+
+    if not playerKey then playerKey = ns.NormalizeName(getUnitName("player")) end
+    if key == playerKey then return end
+
+    -- Check compact legacy keys for users upgrading from v0.1.0.
+    local legacyKey = key:gsub("[%s']+", "")
+    if db.ignored[key] or db.ignored[legacyKey] then return end
 
     local entry = db.entries[key]
+    local validGUID = type(guid) == "string" and guid:find("^Player%-") and guid or nil
+
+    -- Known candidates are never reclassified on every nameplate/chat event.
     if entry then
-        entry.lastSeen = now()
+        if validGUID and entry.guid ~= validGUID then entry.guid = validGUID end
+        local stamp = now()
+        if stamp - (entry.lastSeen or 0) < SIGHTING_INTERVAL then return end
+        entry.lastSeen = stamp
         entry.sightings = (entry.sightings or 1) + 1
         entry.zone = getZone()
         entry.source = source or entry.source
-        if type(guid) == "string" and guid:find("^Player%-") then entry.guid = guid end
-        if entry.confidence ~= "manual" then
-            entry.reason, entry.confidence = reason, confidence
-        end
-    else
-        db.entries[key] = {
-            name = name, reason = reason, confidence = confidence,
-            zone = getZone(), source = source or "Unknown",
-            firstSeen = now(), lastSeen = now(), sightings = 1,
-            guid = (type(guid) == "string" and guid:find("^Player%-")) and guid or nil,
-        }
-        prune()
-        if db.options.notify and (not lastNotice[key] or GetTime() - lastNotice[key] > 30) then
-            lastNotice[key] = GetTime()
-            output("Review suggested: " .. name .. " (" .. reason .. "). /ooc")
-        end
+        if ns.Refresh then ns.Refresh() end
+        return
+    end
+
+    if not manual and negativeCache[key] then return end
+    local reason, confidence = ns.EvaluateName(name, db.custom)
+    if not reason and not manual then
+        -- Bound the memory footprint instead of retaining every normal name.
+        if negativeCount >= 256 then clearNegativeCache() end
+        negativeCache[key] = true
+        negativeCount = negativeCount + 1
+        return
+    end
+    local stamp = now()
+    db.entries[key] = {
+        name = name, reason = reason or "Manually added for review",
+        confidence = confidence or "manual",
+        zone = getZone(), source = source or "Unknown",
+        firstSeen = stamp, lastSeen = stamp, sightings = 1, guid = validGUID,
+    }
+    prune()
+    if db.options.notify and (not lastNotice[key] or GetTime() - lastNotice[key] > 30) then
+        lastNotice[key] = GetTime()
+        output("Review suggested: " .. name .. " (" .. db.entries[key].reason .. "). /ooc")
     end
     if ns.Refresh then ns.Refresh() end
 end
@@ -143,13 +170,11 @@ end
 
 local function getCurrentLocation(entry)
     -- Prefer fresh unit tokens; avoid confusing same-first-name characters.
-    local candidates = {"target", "mouseover", "focus"}
-    for i = 1, 40 do candidates[#candidates + 1] = "nameplate" .. i end
-    for _, unit in ipairs(candidates) do
+    for _, unit in ipairs(visibleUnits) do
         if safe(UnitExists, unit) and safe(UnitIsPlayer, unit) then
             local guid = text(safe(UnitGUID, unit))
             if (entry.guid and guid == entry.guid) or
-               (not entry.guid and getUnitName(unit) == entry.name) then
+               (not entry.guid and ns.NormalizeName(getUnitName(unit)) == ns.NormalizeName(entry.name)) then
                 local location = safe(PlayerLocation and PlayerLocation.CreateFromUnit, PlayerLocation, unit)
                 if location then return location end
             end
@@ -219,20 +244,18 @@ function ns.OpenReport(entry)
     if ns.Refresh then ns.Refresh() end
 end
 
-local function handleChat(event, _, sender, ...)
+-- The GUID is argument 12 of WoW's CHAT_MSG_* payload.
+-- Explicit parameters avoid allocating an argument table on every chat event.
+local function handleChat(event, message, sender, language, channel, target,
+    flags, zoneID, channelIndex, baseName, unused, lineID, guid)
     if not db or not db.options.enabled then return end
     if event == "CHAT_MSG_CHANNEL" and not db.options.zoneChat then return end
     if event ~= "CHAT_MSG_CHANNEL" and not db.options.chat then return end
-    local args = {...}
-    local guid = args[10] -- 12th event argument (message, sender, ...).
     ns.ObserveName(sender, guid, event)
 end
 
 function ns.ScanVisible()
-    ns.ObserveUnit("target", "Target")
-    ns.ObserveUnit("mouseover", "Mouseover")
-    ns.ObserveUnit("focus", "Focus")
-    for i = 1, 40 do ns.ObserveUnit("nameplate" .. i, "Nameplate") end
+    for _, unit in ipairs(visibleUnits) do ns.ObserveUnit(unit, "Visible") end
 end
 
 local function command(input)
@@ -250,16 +273,34 @@ local function command(input)
         ns.ObserveName(arg, nil, "Manual", true)
     elseif cmd == "ignore" then
         local key = ns.NormalizeName(arg)
-        if key then ns.Delete(key, true); output("Ignored " .. arg) end
+        if key and ns.HasFullName(arg) then ns.Delete(key, true); output("Ignored " .. arg) end
     elseif cmd == "unignore" then
         local key = ns.NormalizeName(arg)
-        if key then db.ignored[key] = nil; output("Unignored " .. arg) end
+        if key then
+            db.ignored[key] = nil
+            db.ignored[key:gsub("[%s']+", "")] = nil -- legacy key
+            clearNegativeCache()
+            output("Unignored " .. arg)
+        end
     elseif cmd == "watch" then
         local key = ns.NormalizeName(arg)
-        if key and key ~= "" then db.custom[key] = true; output("Custom watched: " .. arg) end
+        if key and ns.HasFullName(arg) then
+            db.custom[key] = true
+            clearNegativeCache()
+            local entry = db.entries[key]
+            if entry then entry.reason, entry.confidence = "Custom watchlist match", "custom" end
+            if ns.Refresh then ns.Refresh() end
+            output("Custom watched: " .. arg)
+        else
+            output("Provide both first and last name for a watchlist match.")
+        end
     elseif cmd == "unwatch" then
         local key = ns.NormalizeName(arg)
-        if key then db.custom[key] = nil; output("Removed custom watch: " .. arg) end
+        if key then
+            db.custom[key], db.custom[key:gsub("[%s']+", "")] = nil, nil
+            clearNegativeCache()
+            output("Removed custom watch: " .. arg)
+        end
     elseif cmd == "on" or cmd == "off" then
         db.options.enabled = cmd == "on"
         output("Detection " .. (db.options.enabled and "enabled" or "disabled"))
@@ -269,6 +310,7 @@ local function command(input)
         output(cmd .. " = " .. tostring(db.options[key]))
     elseif cmd == "clear" then
         db.entries = {}
+        clearNegativeCache()
         if ns.Refresh then ns.Refresh() end
         output("Review queue cleared (ignored names retained).")
     elseif cmd == "status" then
@@ -286,6 +328,8 @@ SlashCmdList.OOCINICK = command
 
 addon:RegisterEvent("ADDON_LOADED")
 addon:RegisterEvent("PLAYER_LOGIN")
+addon:RegisterEvent("PLAYER_ENTERING_WORLD")
+addon:RegisterEvent("PLAYER_FOCUS_CHANGED")
 addon:RegisterEvent("NAME_PLATE_UNIT_ADDED")
 addon:RegisterEvent("PLAYER_TARGET_CHANGED")
 addon:RegisterEvent("UPDATE_MOUSEOVER_UNIT")
@@ -302,6 +346,17 @@ addon:SetScript("OnEvent", function(_, event, ...)
         OOCInICKDB = OOCInICKDB or {}
         db = OOCInICKDB
         db.entries = db.entries or {}
+        -- Migrate v0.1.0's separator-free keys. Discard incomplete identities.
+        local migrated = {}
+        for _, entry in pairs(db.entries) do
+            if type(entry) == "table" and ns.HasFullName(entry.name) then
+                local key = ns.NormalizeName(entry.name)
+                if not migrated[key] or (entry.lastSeen or 0) > (migrated[key].lastSeen or 0) then
+                    migrated[key] = entry
+                end
+            end
+        end
+        db.entries = migrated
         db.ignored = db.ignored or {}
         db.custom = db.custom or {}
         db.options = db.options or {}
@@ -314,8 +369,12 @@ addon:SetScript("OnEvent", function(_, event, ...)
             output("Ready. /ooc opens the review queue. No reports are sent automatically.")
             ns.ScanVisible()
         end
+    elseif event == "PLAYER_ENTERING_WORLD" then
+        ns.ScanVisible()
     elseif event == "NAME_PLATE_UNIT_ADDED" or event == "UNIT_NAME_UPDATE" then
         ns.ObserveUnit(..., event)
+    elseif event == "PLAYER_FOCUS_CHANGED" then
+        ns.ObserveUnit("focus", "Focus")
     elseif event == "PLAYER_TARGET_CHANGED" then
         ns.ObserveUnit("target", "Target")
     elseif event == "UPDATE_MOUSEOVER_UNIT" then

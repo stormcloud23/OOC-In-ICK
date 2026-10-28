@@ -1,0 +1,26 @@
+name: Lua checks
+
+on:
+  push:
+  pull_request:
+
+concurrency:
+  group: lua-check-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  syntax-and-rules:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Lua 5.1
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y lua5.1
+      - name: Syntax
+        run: |
+          luac5.1 -p OOCInICK/Rules.lua
+          luac5.1 -p OOCInICK/Core.lua
+          luac5.1 -p OOCInICK/UI.lua
+      - name: Rules
+        run: lua5.1 tests/rules.lua

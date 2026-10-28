@@ -78,7 +78,7 @@ end
 
 function ns.ObserveName(name, guid, source, manual)
     if not db or (not db.options.enabled and not manual) then return end
-    name = text(name)
+    name, guid = text(name), text(guid)
     -- Forever's first names are not unique; never queue an incomplete identity.
     if not name or not ns.HasFullName(name) then return end
     local key = ns.NormalizeName(name)
@@ -92,7 +92,7 @@ function ns.ObserveName(name, guid, source, manual)
     if db.ignored[key] or db.ignored[legacyKey] then return end
 
     local entry = db.entries[key]
-    local validGUID = type(guid) == "string" and guid:find("^Player%-") and guid or nil
+    local validGUID = guid and guid:find("^Player%-") and guid or nil
 
     -- Known candidates are never reclassified on every nameplate/chat event.
     if entry then
@@ -270,7 +270,11 @@ local function command(input)
         local reason = ns.EvaluateName(arg, db.custom)
         output(arg .. ": " .. (reason or "No heuristic match (not proof of compliance)."))
     elseif cmd == "add" then
-        ns.ObserveName(arg, nil, "Manual", true)
+        if not ns.HasFullName(arg) then
+            output("Provide both first and last name to add a character.")
+        else
+            ns.ObserveName(arg, nil, "Manual", true)
+        end
     elseif cmd == "ignore" then
         local key = ns.NormalizeName(arg)
         if key and ns.HasFullName(arg) then ns.Delete(key, true); output("Ignored " .. arg) end
@@ -299,6 +303,16 @@ local function command(input)
         if key then
             db.custom[key], db.custom[key:gsub("[%s']+", "")] = nil, nil
             clearNegativeCache()
+            local entry = db.entries[key]
+            if entry and entry.confidence == "custom" then
+                local reason, confidence = ns.EvaluateName(entry.name, db.custom)
+                if reason then
+                    entry.reason, entry.confidence = reason, confidence
+                else
+                    db.entries[key] = nil
+                end
+                if ns.Refresh then ns.Refresh() end
+            end
             output("Removed custom watch: " .. arg)
         end
     elseif cmd == "on" or cmd == "off" then

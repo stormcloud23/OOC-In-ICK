@@ -191,7 +191,7 @@ for _, name in ipairs({
     "Guzuth Redbeard", "Savixor Stone", "Olympian Blackwick",
     "Olympia Silver", "Olympic Knight", "Roachguard Stone",
     "Liquid Steel", "Echo Ironforge", "Method Blackwick",
-    "The One True King", "Metholympus Redbeard",
+    "The One True King", "Metholym Redbeard",
 }) do clear(name) end
 
 -- A user-specified watchlist should still have priority over general rules.

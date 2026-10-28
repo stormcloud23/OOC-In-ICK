@@ -56,6 +56,54 @@ for _, name in ipairs({
     "Ligmah Redbeard", "Grumdin Stone", "Gandalfar Brightvale",
 }) do clear(name) end
 
+-- New exact-match dictionaries: technology, contemporary concepts and slang.
+local newCandidates = {
+    {"Wifi Stone", "Modern technology or internet term"},
+    {"Smartphone Ironforge", "Modern technology or internet term"},
+    {"Bluetooth Blackwick", "Modern technology or internet term"},
+    {"Chatgpt Stone", "Modern technology or internet term"},
+    {"Github Stone", "Modern technology or internet term"},
+    {"Artificial Intelligence", "Modern technology or internet term"},
+    {"Tax Return", "Modern product, institution or concept"},
+    {"Health Insurance", "Modern product, institution or concept"},
+    {"Credit Card", "Modern product, institution or concept"},
+    {"Student Loan", "Modern product, institution or concept"},
+    {"Airfryer Redbeard", "Modern product, institution or concept"},
+    {"Selfie Blackwick", "Modern product, institution or concept"},
+    {"Online Dating", "Modern product, institution or concept"},
+    {"Ragequit Redbeard", "Internet slang or meme"},
+    {"Poggers Stone", "Internet slang or meme"},
+    {"Copium Ironforge", "Internet slang or meme"},
+    {"AltF4 Blackwick", "Internet slang or meme"},
+    {"Not A Bot", "Modern joke or sentence-like phrase"},
+    {"Loading Screen", "Modern joke or sentence-like phrase"},
+    {"Error 404", "Modern joke or sentence-like phrase"},
+    {"Free Gold", "Modern joke or sentence-like phrase"},
+    {"Dontbanme Stone", "Modern joke or sentence-like phrase"},
+    {"Like And Subscribe", "Modern joke or sentence-like phrase"},
+    {"Mywifiisdown Stone", "Sentence-like or modern joke-name prefix"},
+    {"GrumdinTTV Stone", "Streamer/gamer-tag suffix"},
+    {"RedbeardYT Stone", "Streamer/gamer-tag suffix"},
+    {"xWifi Stone", "Decorative X prefix/suffix (online nickname style"},
+}
+for _, case in ipairs(newCandidates) do
+    local reason, confidence = ns.EvaluateName(case[1])
+    assert(reason and reason:sub(1, #case[2]) == case[2],
+        case[1] .. ": expected " .. case[2] .. ", got " .. tostring(reason))
+    assert(confidence == "medium", case[1] .. ": expected medium")
+end
+
+-- These are ordinary fantasy terms, generic substrings or ambiguous words.
+for _, name in ipairs({
+    "Grumdin Steamhammer", "Goblin Engineer", "Ironbeard Mechanic",
+    "Nyx Shadowsong", "Lex Stone", "Dagger Storm", "Bramble Thorn",
+    "Rizzara Storm", "Chad Ironfist", "Sigma Redbeard",
+    "Raidhammer Stone", "Tankard Ironbrew", "Dragonfire Forge",
+    "Xander Silver", "Felix Redbeard", "Ggandor Stone",
+    "Spicehammer Stout", "Wifindor Stone", "Netflixel Stone",
+    "Softwareson Stone", "Internetarian Stone", "Mortgagekeeper Stone",
+}) do clear(name) end
+
 -- A user-specified watchlist should still have priority over general rules.
 assert(ns.EvaluateName("Sephiroth Ironforge", {["sephiroth ironforge"] = true})
     == "Custom watchlist match")

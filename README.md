@@ -37,6 +37,14 @@ Names with decorative **double X** at either end of a component are suggested fo
 
 The \`/ooc test NAME\` command can test an isolated first name, but automatic observation continues to require a **first name and surname** so partial identities are not entered into the reporting queue. All matches require human judgment before reporting. No substring-wide detection or recurring scanning was added.
 
+## Expanded anachronism dictionary (v0.1.3)
+
+The dictionary adds **modern technology and computing** (WiFi, Bluetooth, smartphone, laptop, software, ChatGPT, machine learning, cryptocurrency), **contemporary institutions and products** (tax return, student loan, credit card, insurance, air fryer, social media), **online slang and memes** (Poggers, Copium, Ragequit, Gitgud, AltF4), and **sentence/joke names** (Not A Bot, Error 404, Free Gold, Like And Subscribe, Dontbanme).
+
+Terms are matched as an **entire first-name or surname component**, or across an entire joined full name (such as `Tax Return`). There is no blanket substring matching: `WiFi Stone` is a candidate, while `Wifindor Stone` is not. The new streamer-tag suffix checks recognize names such as `GrumdinTTV` and `RedbeardYT`.
+
+Every match is only a **suggestion for human review**. Warcraft includes technology, steam engineering, machines, commerce, and modern-sounding humor, so generic words such as `engineer`, `steam`, `tank`, `raid`, `bank`, `sigma`, and `chad` are intentionally not blacklisted. Players can remove false positives through Ignore. As before, only complete first-and-surname observations enter the queue automatically.
+
 ## Chat commands
 
 | Command | Action |

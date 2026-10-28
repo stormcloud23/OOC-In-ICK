@@ -20,7 +20,7 @@ Forever 1.60.1 uses interface number 16001 and the Camelot TOC flavor. This code
 - Passive observation: NAME_PLATE_UNIT_ADDED, UNIT_NAME_UPDATE, focus/target/mouseover changes, and exposed nameplates; event-driven, no continuous polling.
 - Nearby chat: say/yell/emote senders (on by default).
 - Optional zone chat: CHAT_MSG_CHANNEL senders (off by default). This is not a census of the zone.
-- Detection: examples from Blizzard's RP naming policy, a short list of obvious modern references, suspicious sentence-like prefixes, and low-confidence repeated-character patterns. Only complete first-and-surname identities are automatically queued.
+- Detection: Blizzard naming-policy examples; a curated list of pop-culture names, modern brands, internet slang and joke phrases; specific sentence prefixes; decorative X wrappers (e.g. `xXSephirothXx`); and low-confidence repeated-character patterns. Only complete first-and-surname identities are automatically queued.
 - Processing: non-matches are cached in a bounded 256-name table, repeated candidate sightings are coalesced into 60-second intervals, and chat events do not allocate an argument table.
 - Name identity: "First Surname" and "First-Surname" normalize to the same key, while "FirstSurname" remains distinct; heuristics may still inspect the joined spelling. Older saved entries are migrated on load.
 - Review queue: timestamp, zone, source, sightings (at least 60 seconds apart), reason, name, and optional player GUID are held in SavedVariables.
@@ -28,6 +28,14 @@ Forever 1.60.1 uses interface number 16001 and the Camelot TOC flavor. This code
 - Ignore: excludes that exact normalized full name locally. There is no network communication or shared blocklist.
 
 **Important limitations:** The Lua addon API does not provide arbitrary nearby/whole-zone player rosters, cannot guarantee names on unloaded nameplates, and does not allow addon-triggered C_ReportSystem.SendReport. Opening the Blizzard reporting window and preselecting a category are best-effort and require testing on Forever's current build. There is no background scanning of the entire zone or automated mass reporting.
+
+## Expanded name detection (v0.1.2)
+
+The local rule dictionary now includes references such as Sephiroth, Naruto, Fortnite, TikTok, and Discord; internet slang such as LMAO, Gitgud, Skillissue, and Skibidi; and joke/sentence-like names such as Deez Nuts, Your Mom, Sendhelp, and Whereismyloot.
+
+Names with decorative **double X** at either end of a component are suggested for review: \`xXSephirothXx Blackwick\`, \`xxGrumdin Redbeard\`, and \`Grumdinxx Stone\`. A **single X** at the start or end is only considered when the underlying component is a recognized modern reference (\`xSephiroth\`, \`Sephirothx\`). This deliberately avoids flagging normal fantasy names like \`Xavier\`, \`Xanthus\`, \`Nyx\`, and \`Felix\`.
+
+The \`/ooc test NAME\` command can test an isolated first name, but automatic observation continues to require a **first name and surname** so partial identities are not entered into the reporting queue. All matches require human judgment before reporting. No substring-wide detection or recurring scanning was added.
 
 ## Chat commands
 

@@ -107,4 +107,13 @@ ns.ObserveName("Youtube Farstrider", nil, "Nameplate")
 ns.ObserveName("Youtube Farstrider", nil, "Chat")
 assert(evaluations == 2, "Existing candidate should not be reclassified")
 
+-- Names from available full-name events use the expanded dictionary.
+ns.ObserveName("xXSephirothXx Stout", "Player-1-X", "Chat")
+assert(entry("xXSephirothXx Stout"), "Decorative X name not queued")
+ns.ObserveName("Deez Nuts", "Player-1-J", "Chat")
+assert(entry("Deez Nuts"), "Joined joke phrase not queued")
+ns.ObserveName("Xavier Stone", "Player-1-C", "Chat")
+assert(entry("Xavier Stone") == nil, "A normal X-initial name was flagged")
+ns.ObserveName("xXSephirothXx", "Player-1-P", "Chat")
+assert(entry("xXSephirothXx") == nil, "First-name-only data must not create ambiguous reports")
 print("OOC-In-ICK event-processing tests passed.")

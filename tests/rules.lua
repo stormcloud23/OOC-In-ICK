@@ -36,4 +36,27 @@ assert(ns.NormalizeName("|cff00ff00Fake Name|r") == nil)
 assert(ns.EvaluateName("|cff00ff00Fake Name|r") == nil)
 assert(ns.EvaluateName("Grumdin Redbeard", {grumdinredbeard = true}) == "Custom watchlist match")
 assert(ns.EvaluateName("Grumdin-Redbeard", {["grumdin redbeard"] = true}) == "Custom watchlist match")
+-- Modern media, joke names, chat slang, and joined first/surname phrases.
+for _, name in ipairs({
+    "Sephiroth Ironforge", "Naruto Stone", "TikTok Blackwick",
+    "Deez Nuts", "Your Mom", "Skillissue Stout", "Skibidi McIron",
+    "Sendhelp Redbeard", "Wheresmyloot Grumdin", "Ihatethisgame Stone",
+    "Givemegold Stout", "Onevone Plz", "XxSephirothXx", "xXSephirothXx Blackwick",
+    "xxGrumdin Stone", "Grumdinxx Stone", "xSephiroth Stone",
+    "Sephirothx Stone", "xSephirothx Stone",
+}) do
+    flagged(name, "medium")
+end
+
+-- A single X, or an embedded modern term, is not by itself suspicious.
+for _, name in ipairs({
+    "Xavier Blackwick", "Xanthus Redbeard", "Xander Ironforge",
+    "Felix Stone", "Xerox Blackwick", "Nyx Stone", "Xylix Silver",
+    "Sephirothian Redbeard", "Batmanning Stout", "Ggandor Stone",
+    "Ligmah Redbeard", "Grumdin Stone", "Gandalfar Brightvale",
+}) do clear(name) end
+
+-- A user-specified watchlist should still have priority over general rules.
+assert(ns.EvaluateName("Sephiroth Ironforge", {["sephiroth ironforge"] = true})
+    == "Custom watchlist match")
 print("OOC-In-ICK heuristic tests passed.")

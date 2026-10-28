@@ -14,7 +14,7 @@ The installed file should be at `Interface/AddOns/OOCInICK/OOCInICK_Camelot.toc`
 
 ## Name detection
 
-The addon applies explainable, configurable heuristics rather than AI:
+The addon applies explainable, rule-based heuristics rather than AI:
 
 - **Modern references:** brands, technology, websites, contemporary jobs and organizations (e.g. `WiFi`, `ChatGPT`, `FBI Agent`).
 - **Out-of-character language:** internet slang, memes, joke phrases, and sentence-like names (e.g. `Deez Nuts`, `Skillissue`, `Mynameis...`).
@@ -23,7 +23,7 @@ The addon applies explainable, configurable heuristics rather than AI:
 
 Most dictionary rules match complete name components or phrases; **distinctive streamer handles** and selected community identifiers can also match within longer names. Ambiguous matches (such as `Esfand` or `Olympus`) are lower confidence. Ordinary fantasy names and terms like `Engineer` are not automatically treated as violations.
 
-Automatic logging requires an observed **first name and surname**. Results include the reason, confidence, location, and sightings. Detection is event-driven, with a small cache and no continuous scanning.
+Automatic logging requires an observed **first name and surname**. Saved matches retain a reason, confidence level, location, and sighting history. Detection is event-driven, with a small cache and no continuous scanning.
 
 ## Commands
 
@@ -33,11 +33,11 @@ Automatic logging requires an observed **first name and surname**. Results inclu
 | `/ooc scan` | Recheck currently exposed player units |
 | `/ooc test NAME` | Test a name without logging it |
 | `/ooc add NAME` | Manually queue a full name |
-| `/ooc watch NAME` / `unwatch NAME` | Add/remove a full-name watchlist entry |
-| `/ooc ignore NAME` / `unignore NAME` | Ignore/unignore a full name |
-| `/ooc chat` / `zonechat` | Toggle local chat / channel-sender monitoring |
-| `/ooc notify` / `on` / `off` | Toggle notifications or detection |
-| `/ooc clear` / `status` | Clear the queue or show settings |
+| `/ooc watch NAME` / `/ooc unwatch NAME` | Add/remove a full-name watchlist entry |
+| `/ooc ignore NAME` / `/ooc unignore NAME` | Ignore/unignore a full name |
+| `/ooc chat` / `/ooc zonechat` | Toggle local chat / channel-sender monitoring |
+| `/ooc notify` / `/ooc on` / `/ooc off` | Toggle notifications or detection |
+| `/ooc clear` / `/ooc status` | Clear the queue or show settings |
 
 Local chat monitoring is enabled by default; channel-sender monitoring is off by default. Use complete first-and-surname values for watchlists and manual additions.
 

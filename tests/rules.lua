@@ -146,13 +146,52 @@ end
 
 -- Avoid generic professions, organizations and embedded alias substrings.
 for _, name in ipairs({
-    "Asmongolden Redbeard", "Asmonius Stone", "Esfandar Ironforge",
+    "Asmonius Stone", "Esfandar Ironforge",
     "Xaryus Silver", "Payonor Stone", "Guzuth Blackwick",
     "Savixor Storm", "Venrukian Stout", "Taxaccountantess Stout",
     "Softwaredeveloperian Redbeard", "Fbiarcher Stone",
     "Taxbinder Stout", "Arcane Engineer", "Dwarven Accountant",
     "Goblin Merchant", "Engineer Ironhammer", "Nasaari Stoneshield",
     "Maximum Redbeard", "Echo Blackwick", "Method Stone",
+}) do clear(name) end
+
+-- Distinctive streamer handles work inside longer names, not just tokens.
+for _, case in ipairs({
+    {"Asmongolden Redbeard", "WoW streamer handle reference", "medium"},
+    {"Myasmongoldfan Stone", "WoW streamer handle reference", "medium"},
+    {"Zackrawrrswarrior Stout", "WoW streamer handle reference", "medium"},
+    {"Sodapoppinfan Blackwick", "WoW streamer handle reference", "medium"},
+    {"EsfandTVguild Redbeard", "WoW streamer handle reference", "medium"},
+    {"Bajheeraforever Redbeard", "WoW streamer handle reference", "medium"},
+    {"OlYmpusfan Redbeard", "Olympus streamer-guild reference", "medium"},
+    {"OlympusRecruiter Stone", "Olympus streamer-guild reference", "medium"},
+    {"OlympusGuild Redbeard", "Olympus streamer-guild reference", "medium"},
+    {"OlympusArmy Blackwick", "Olympus streamer-guild reference", "medium"},
+    {"Olympusmute Stout", "Olympus streamer-guild reference", "medium"},
+    {"MyOnlyFangs Redbeard", "Streamer guild/community reference", "medium"},
+    {"Fangslymember Stout", "Streamer guild/community reference", "medium"},
+    {"RoachCouncil Stout", "Streamer guild/community reference", "medium"},
+    {"TeamLiquidfan Redbeard", "Streamer guild/community reference", "medium"},
+    {"EchoEsportsFan Blackwick", "Streamer guild/community reference", "medium"},
+    {"OTKNetwork Redbeard", "Streamer guild/community reference", "medium"},
+    {"Olympus Redbeard", "Possible Olympus guild reference (ambiguous)", "low"},
+    {"LordOlympus Redbeard", "Possible Olympus guild reference (ambiguous)", "low"},
+    {"Olympvs", "Possible Olympus guild variant (ambiguous)", "low"},
+    {"OTK", "Possible OTK streamer-network reference (ambiguous)", "low"},
+}) do
+    local reason, confidence = ns.EvaluateName(case[1])
+    assert(reason == case[2] and confidence == case[3],
+        case[1] .. ": wanted " .. case[2] .. "/" .. case[3] .. ", got " ..
+        tostring(reason) .. "/" .. tostring(confidence))
+end
+
+-- Short aliases are still exact-match only; fantasy language stays valid.
+for _, name in ipairs({
+    "Asmonius Redbeard", "Esfandar Ironforge", "Payoza Storm",
+    "Guzuth Redbeard", "Savixor Stone", "Olympian Blackwick",
+    "Olympia Silver", "Olympic Knight", "Roachguard Stone",
+    "Liquid Steel", "Echo Ironforge", "Method Blackwick",
+    "The One True King", "Metholympus Redbeard",
 }) do clear(name) end
 
 -- A user-specified watchlist should still have priority over general rules.

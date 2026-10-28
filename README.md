@@ -69,6 +69,36 @@ Research (October 2026):
 - https://streamscout.org/categories/world-of-warcraft
 - https://www.followercharts.com/games/twitch/world-of-warcraft
 
+## Embedded streamer handles and streamer guilds (v0.1.5)
+
+A **short curated list** of unmistakable streamer handles can now match
+*inside* a longer name: \`Asmongolden\`, \`Myasmongoldfan\`,
+\`Zackrawrrswarrior\`, \`Sodapoppinfan\`, etc. This applies only to
+distinctive handles; short or fantasy-plausible aliases such as \`Asmon\`,
+\`Esfand\`, \`Payo\`, and \`Guzu\` still require a whole component.
+
+Guild and community handles are also recognized inside longer character
+names: \`OnlyFangs\`, \`Fangsly\`, \`RoachCouncil\`, \`OTKNetwork\`,
+\`TeamLiquid\`, \`EchoEsports\`, \`ComplexityLimit\`, and \`BigDumbGaming\`.
+
+Asmongold's **Olympus** family of guilds deserves additional context:
+names such as \`OlympusGuild\`, \`OlympusArmy\`, \`OlympusRecruiter\`,
+\`OlympusFan\` and \`OlympusMute\` are medium-confidence suggestions;
+\`Olympus\` by itself and \`LordOlympus\` are **low confidence**, since
+Olympus is also a Greek mythological name. \`Olympian\` and \`Olympia\`
+alone are not automatically flagged. \`OTK\` alone is low confidence.
+
+These checks apply **only to character names**, not the actual guild tag
+or membership. Being in an Olympus/OnlyFangs guild by itself should not
+cause a report. All suggestions require human review.
+
+Background sources:
+- https://www.asmongold.org/olympus
+- https://www.invenglobal.com/articles/9155/to-a-captive-in-game-audience-asmongold-crafts-realm-first-sulfuras-hand-of-ragnaros
+- https://raider.io/events/onlyfangs-season-2-hardcore/info
+- https://us.forums.blizzard.com/en/wow/t/can-anyone-explain-what-onlyfangs-fangsly-are/2011280/1
+- https://news.blizzard.com/en-gb/article/23700347/the-race-to-world-first-in-the-sanctum-of-domination-has-begun
+
 ## Chat commands
 
 | Command | Action |

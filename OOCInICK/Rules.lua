@@ -179,6 +179,37 @@ local streamerHandles = {
     jdotb = true, scripe = true, shroudyrowdy = true,
 }
 
+-- Only distinctive streamer handles use EMBEDDED matching; otherwise
+-- normal fantasy surnames containing "asmon" or "payo" would be flagged.
+-- Keep this curated instead of checking every streamer handle as a substring.
+local streamerStems = {
+    "asmongold", "zackrawrr", "sodapoppin", "esfandtv",
+    "pikabooirl", "towelliee", "bajheera", "jokerdtv",
+    "mcconnellret", "ziqoftw", "gingitv", "psherotv",
+    "kungentv", "summit1g", "timthetatman", "trillebartom",
+    "pilavpowa", "hazelnuttygames", "automaticjak",
+    "wowgrandma78", "graysfordays", "shroudyrowdy",
+}
+
+-- Distinctive streamer guilds, communities and esports organizations.
+-- A user naming their character after a guild is NOT necessarily
+-- violating policy; this merely identifies an apparent reference.
+local communityStems = {
+    "onlyfangs",      -- Sodapoppin's Hardcore streamer guild
+    "fangsly",        -- associated streamer guild
+    "roachcouncil",   -- Asmongold community identity
+    "otknetwork", "otkgaming",
+    "teamliquid", "echoesports", "complexitylimit",
+    "bigdumbgaming", "methodguild", "liquidguild",
+}
+
+-- Olympus is a real Greek mythological place, so its bare use is LOW
+-- confidence. Specific guild/community references are more distinctive.
+local olympusContexts = {
+    "guild", "army", "recruit", "member", "officer", "fan",
+    "roaches", "king", "mute", "newsnetwork",
+}
+
 -- Short/fantasy-plausible names get LOW confidence: being called
 -- "Esfand" or "Xaryu" alone is not evidence of a streamer reference.
 local ambiguousStreamerAliases = {
@@ -325,6 +356,34 @@ local function exactMatch(part)
     if jokePhrases[part] then return "Modern joke or sentence-like phrase", "medium" end
 end
 
+local function communityMatch(joined)
+    for _, stem in ipairs(communityStems) do
+        if joined:find(stem, 1, true) then
+            return "Streamer guild/community reference", "medium"
+        end
+    end
+
+    if joined:find("olympus", 1, true) then
+        for _, context in ipairs(olympusContexts) do
+            if joined:find("olympus" .. context, 1, true) then
+                return "Olympus streamer-guild reference", "medium"
+            end
+        end
+        return "Possible Olympus guild reference (ambiguous)", "low"
+    end
+
+    -- These alternate spellings occur in Olympus guild references but
+    -- are too ambiguous to use as general substring patterns.
+    if joined == "olympvs" or joined == "olympuz" or joined == "olimpus" then
+        return "Possible Olympus guild variant (ambiguous)", "low"
+    end
+
+    -- OTK is short enough to be a non-streamer acronym; never substring.
+    if joined == "otk" then
+        return "Possible OTK streamer-network reference (ambiguous)", "low"
+    end
+end
+
 function ns.EvaluateName(name, custom)
     local raw, joined = clean(name)
     if not raw then return nil end
@@ -333,8 +392,18 @@ function ns.EvaluateName(name, custom)
         return "Custom watchlist match", "custom"
     end
 
-    -- Check each component and the combined spelling ("Deez Nuts").
+    -- Preserve exact matching for general terms, but recognize the
+    -- distinctive handles even inside a longer character name.
     local reason, confidence = exactMatch(joined)
+    if reason then return reason, confidence end
+
+    for _, stem in ipairs(streamerStems) do
+        if joined:find(stem, 1, true) then
+            return "WoW streamer handle reference", "medium"
+        end
+    end
+
+    reason, confidence = communityMatch(joined)
     if reason then return reason, confidence end
 
     for part in raw:gmatch("[^%s']+") do

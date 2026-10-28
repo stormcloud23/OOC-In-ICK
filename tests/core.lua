@@ -92,4 +92,19 @@ assert(entry("Nimzi Blackwick") and entry("Nimzi Blackwick").confidence == "manu
 SlashCmdList.OOCINICK("add Robotman") -- invalid: no surname
 assert(entry("Robotman") == nil, "Manual additions must require a full name")
 
+-- Common names are classified just once per cache window; known candidates are
+-- not rescanned on every incoming observation.
+local evaluate = ns.EvaluateName
+local evaluations = 0
+ns.EvaluateName = function(...)
+    evaluations = evaluations + 1
+    return evaluate(...)
+end
+ns.ObserveName("Quietleaf Sunbranch", nil, "Chat")
+ns.ObserveName("Quietleaf Sunbranch", nil, "Chat")
+assert(evaluations == 1, "Negative classification cache missed")
+ns.ObserveName("Youtube Farstrider", nil, "Nameplate")
+ns.ObserveName("Youtube Farstrider", nil, "Chat")
+assert(evaluations == 2, "Existing candidate should not be reclassified")
+
 print("OOC-In-ICK event-processing tests passed.")
